@@ -1,0 +1,19 @@
+name: Terraform Plan
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+        with: { terraform_version: "1.5.0" }
+      - run: terraform init -input=false
+        working-directory: terraform
+      - run: terraform plan -input=false -out=tfplan
+        working-directory: terraform
+      - uses: actions/upload-artifact@v3
+        with: { name: tfplan, path: terraform/tfplan }
