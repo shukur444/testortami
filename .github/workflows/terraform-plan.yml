@@ -8,12 +8,39 @@ jobs:
   plan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.1.2
-      - uses: hashicorp/setup-terraform@v2
-        with: { terraform_version: "1.5.0" }
-      - run: terraform init -input=false
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ secrets.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.5.0"
+
+      - name: Terraform Init
         working-directory: terraform
-      - run: terraform plan -input=false -out=tfplan
+        run: terraform init -input=false
+
+      - name: Terraform Validate
         working-directory: terraform
-      - uses: actions/upload-artifact@v3.1.2
-        with: { name: tfplan, path: terraform/tfplan }
+        run: terraform validate
+
+    
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ secrets.AWS_REGION }}
+
+
+      - name: Terraform Plan
+        working-directory: terraform
+        run: terraform plan -input=false
+
