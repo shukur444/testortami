@@ -24,11 +24,11 @@ jobs:
           terraform_version: "1.5.0"
 
       - name: Terraform Init
-        working-directory: terraform
+      
         run: terraform init -input=false
 
       - name: Terraform Apply
-        working-directory: terraform
+      
         run: terraform apply -auto-approve
 
       - name: Configure AWS Credentials
