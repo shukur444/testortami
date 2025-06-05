@@ -1,11 +1,7 @@
 name: Terraform CI/CD
 
-# Bu workflow her push veya pull request açıldığında çalışacak.
 on:
   push:
-    branches:
-      - main
-  pull_request:
     branches:
       - main
 
@@ -13,50 +9,28 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
 
-    # AWS credential’larını “env” bloğu içinde, GitHub Secrets’dan alıyoruz.
     env:
       AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION:    ${{ vars.AWS_REGION || 'us-east-1' }} 
-      # AWS_REGION’ı varsayılan olarak "us-east-1" verdik. Dilersen GitHub repo vars’dan AWS_REGION ekle.
+      AWS_DEFAULT_REGION:    us-east-1
 
     steps:
-      # 1) Repo kodlarını çek:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2) Terraform CLI’yı indirme ve kurma:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.7.9" 
-          # İstersen 1.8+ kullanabilirsin, sürümünü ortama göre güncelle.
+          terraform_version: "1.7.9"
 
-      # 3) (Opsiyonel) Eğer Terraform dosyaların alt klasörlerdeyse çalışma dizini ayarla.
-      #    Örneğin Terraform kodların /terraform klasöründeyse:
-      #- name: Change directory
-      #  run: cd terraform
-
-      # 4) Terraform Init: Backend’e bağlan, state’i S3’e çıkar.
       - name: Terraform Init
         run: terraform init -input=false
 
-      # 5) Terraform Validate: Kod syntax ve yapı kontrolü
-      - name: Terraform Validate
-        run: terraform validate
-
-      # 6) Terraform Plan: Yapılacak değişiklikleri ortaya çıkar.
       - name: Terraform Plan
         run: terraform plan -out=plan.out
 
-      # 7) (Opsiyonel) Plan çıktısını artifact olarak sakla
       - name: Upload Terraform Plan Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: tfplan
           path: plan.out
-
-      # 8) Terraform Apply: Değişiklikleri uygula (prod ortamdaysa approval adımı ekleyebilirsin)
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -input=false plan.out
