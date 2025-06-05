@@ -8,12 +8,12 @@ jobs:
   plan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.1.2
       - uses: hashicorp/setup-terraform@v2
         with: { terraform_version: "1.5.0" }
       - run: terraform init -input=false
         working-directory: terraform
       - run: terraform plan -input=false -out=tfplan
         working-directory: terraform
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v3.1.2
         with: { name: tfplan, path: terraform/tfplan }
